@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>掃除当番シャッフル決定表</title>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        
+        <h1>シャッフル掃除当番</h1>
+
+        <div class="member-area">
+            <h3>対象メンバー（計12名）</h3>
+            
+            <ul id="fixedMemberList">
+                <li>又吉</li>
+                <li>友利</li>
+                <li>礼夫</li>
+                <li>安藤</li>
+                <li>砂川</li>
+                <li>玉城</li>
+                <li>大空</li>
+                <li>真栄城</li>
+                <li>宮城</li>
+                <li>名城</li>
+                <li>新里</li>
+                <li>阿利</li>
+            </ul>
+            
+            <button id="shuffleBtn">シャッフルして決定</button>
+        </div>
+
+        <div class="result-area">
+            <table id="resultTable">
+                <thead>
+                    <tr>
+                        <th>掃除箇所</th> <th>担当者</th>   </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="2" style="text-align:center; color:#999;">
+                            ボタンを押すとここに結果が表示されます
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
