@@ -4,7 +4,6 @@
 
 // 掃除する場所と、必要な人数の設定
 const cleaningConfig = [
-    // ★重要: ここの名前("トイレ×2")と、後述の除外ロジックの名前を一致させています
 { name: "トイレ×2", capacity: 1 },                 // 必要人数: 1人
     { name: "リフレッシュルーム", capacity: 1 },         // 必要人数: 1人
     { name: "面談室", capacity: 1 },                     // 必要人数: 1人
@@ -12,13 +11,30 @@ const cleaningConfig = [
     { name: "1Fフロア(廊下込み)", capacity: 3 },         // 必要人数: 3人
     { name: "タオル洗濯", capacity: 1 },                 // 必要人数: 1人
     { name: "玄関", capacity: 1 },                       // 必要人数: 1人
-    { name: "外(屋外)*中庭は無し", capacity: 2 },                   // 必要人数: 2人
-    { name: "外(太陽光パネル下)", capacity: 1 }          // 必要人数: 1人      
+    { name: "外(屋外)", capacity: 2 },                   // 必要人数: 2人
+    { name: "外(太陽光パネル下)", capacity: 1 }          // 必要人数: 1人        
 ];
 
-// ★追加設定: トイレ掃除を担当しない（選択できない）メンバーの名前
-// ※HTMLのリストにある名前と完全に一致させてください（スペースなどに注意）
-const excludedFromToilet = ["宮城", "阿利", "名城"];
+/* ========================================
+  ★重要：担当NG（除外）設定リスト
+  ======================================== */
+
+// 「この場所」は「この人」を選ばない、という設定です。
+// 左側に「掃除箇所名」、右側に「担当できない人の名前」を書きます。
+// ※掃除箇所名は上の cleaningConfig と完全に一致させてください。
+const ngConfig = {
+    // 例：トイレには「宮城」「阿利」「名城」を選ばない
+    "トイレ×2": ["宮城", "阿利", "名城"],
+
+    // 例：外(屋外)には「安藤」を選ばない（※必要ならコメントを外して使ってください）
+    // "外(屋外)": ["安藤"],
+
+    // 例：タオル洗濯には「玉城」と「大空」を選ばない
+    // "タオル洗濯": ["玉城", "大空"],
+    
+    // ※設定がない場所は、誰でも選ばれます。
+};
+
 
 /* ========================================
   2. 画面読み込み時の処理
@@ -39,69 +55,62 @@ function runShuffle() {
     const listItems = document.querySelectorAll('#fixedMemberList li');
     
     // 名前を取得してリスト化（前後の空白は削除）
-    let allStaff = Array.from(listItems).map(li => li.textContent.trim());
+    let staffPool = Array.from(listItems).map(li => li.textContent.trim());
 
-    if (allStaff.length === 0) {
+    if (staffPool.length === 0) {
         alert("エラー：メンバーが見つかりません。HTMLのリストを確認してください。");
         return;
     }
 
-    // --- 手順2: グループ分け（トイレ担当NGかどうか） ---
-    
-    // Aグループ: トイレ掃除ができる人（全メンバーからNGの人を除外）
-    // .filter は条件に合う人だけを残す命令です
-    let groupForToilet = allStaff.filter(name => !excludedFromToilet.includes(name));
-    
-    // Bグループ: トイレ掃除ができない人（NGリストに含まれる人）
-    let groupNoToilet = allStaff.filter(name => excludedFromToilet.includes(name));
-
-    // Aグループ（トイレOK組）をシャッフルします
-    shuffleArray(groupForToilet);
+    // --- 手順2: 全員をシャッフル（ランダム並び替え） ---
+    // まず全員をランダムに混ぜます
+    shuffleArray(staffPool);
 
     // --- 手順3: テーブルの準備 ---
     const tbody = document.querySelector('#resultTable tbody');
     if (!tbody) return; 
     tbody.innerHTML = ""; // 前回の結果をクリア
 
-    // --- 手順4: 割り当て処理 ---
+    // --- 手順4: 割り当て処理（NGリストを考慮） ---
     
-    // 「残りの全メンバー」を管理するための変数（あとで合流させます）
-    let mainPool = null;
-
+    // 場所ごとにループ処理
     cleaningConfig.forEach(location => {
         
-        let assignedMembers = []; // この場所に配属される人のリスト
+        let assignedMembers = []; // この場所に決まった人を入れる箱
+        
+        // この場所の「NGメンバーリスト」を取得（設定がなければ空の配列）
+        // ngConfig["トイレ×2"] のような形で取得します
+        const ngList = ngConfig[location.name] || [];
 
-        // ★判定: 今の場所は「トイレ」かどうか？
-        if (location.name === "トイレ×2") {
-            // --- トイレの場合の処理 ---
+        // --- 候補者選びのループ ---
+        // staffPool（残っている人）の中から、条件に合う人を探します
+        
+        // staffPoolを先頭から順番にチェックしていく
+        // (forループを逆回しにしているのは、途中で要素を削除(splice)してもインデックスがズレないようにするため)
+        for (let i = 0; i < staffPool.length; i++) {
             
-            // 定員数分だけ「Aグループ（トイレOK）」から取り出す
-            for (let i = 0; i < location.capacity; i++) {
-                if (groupForToilet.length > 0) {
-                    // Aグループの先頭から1人抜き出して割り当て
-                    assignedMembers.push(groupForToilet.shift());
-                }
+            // 必要な人数が集まったら探すのをやめる
+            if (assignedMembers.length >= location.capacity) {
+                break;
             }
-            
-        } else {
-            // --- トイレ以外の場合の処理 ---
-            
-            // ★重要: まだ合流していなければ、ここで合流させる
-            if (mainPool === null) {
-                // 「トイレ担当にならなかった残りのAグループ」と「Bグループ」を合体
-                mainPool = groupForToilet.concat(groupNoToilet);
+
+            // 今チェックしている人
+            const candidate = staffPool[i];
+
+            // ★判定：この人は、この場所のNGリストに含まれているか？
+            if (!ngList.includes(candidate)) {
+                // NGに含まれていない（＝担当OK）なら
                 
-                // 合体した全員をもう一度シャッフルする（公平にするため）
-                shuffleArray(mainPool);
+                // 1. 担当者に決定
+                assignedMembers.push(candidate);
+                
+                // 2. 候補者リスト(staffPool)から削除する
+                staffPool.splice(i, 1);
+                
+                // 3. 配列を削除してズレた分、インデックス(i)を1つ戻す
+                i--; 
             }
-
-            // 合流した「mainPool」から定員数分を取り出す
-            for (let i = 0; i < location.capacity; i++) {
-                if (mainPool.length > 0) {
-                    assignedMembers.push(mainPool.shift());
-                }
-            }
+            // NGリストに含まれている人は、スルーして次の人をチェックします
         }
 
         // --- 手順5: 行を作成して表示 ---
@@ -114,30 +123,21 @@ function runShuffle() {
 
         // 名前セル
         const tdName = document.createElement('td');
+        
         if (assignedMembers.length > 0) {
             tdName.textContent = assignedMembers.join('、 ');
         } else {
-            tdName.textContent = "（担当者なし）";
-            tdName.style.color = "#ccc";
+            // 誰も割り当てられなかった場合（全員がNGだった場合など）
+            tdName.textContent = "（適任者なし・要調整）";
+            tdName.style.color = "#e74c3c"; // 赤文字にする
         }
         tr.appendChild(tdName);
 
         tbody.appendChild(tr);
     });
 
-    // --- 手順6: 人が余った場合の処理 ---
-    
-    // 合流後のリスト(mainPool)にまだ人が残っているか確認
-    // ※トイレだけで全員使い切った場合はmainPoolがnullのままなのでチェックが必要
-    let remainingMembers = [];
-    if (mainPool !== null && mainPool.length > 0) {
-        remainingMembers = mainPool;
-    } else if (mainPool === null && groupForToilet.length > 0) {
-        // 万が一トイレだけで終わって合流しなかった場合の残り
-        remainingMembers = groupForToilet.concat(groupNoToilet);
-    }
-
-    if (remainingMembers.length > 0) {
+    // --- 手順6: 最後に余った人の処理 ---
+    if (staffPool.length > 0) {
         const tr = document.createElement('tr');
         
         const tdPlace = document.createElement('td');
@@ -146,7 +146,7 @@ function runShuffle() {
         tr.appendChild(tdPlace);
         
         const tdName = document.createElement('td');
-        tdName.textContent = remainingMembers.join('、 ');
+        tdName.textContent = staffPool.join('、 ');
         tdName.style.backgroundColor = "#fffde7";
         tr.appendChild(tdName);
 
@@ -155,8 +155,7 @@ function runShuffle() {
 }
 
 /**
- * 配列をランダムに並び替える関数（フィッシャー–イェーツのシャッフル）
- * 何度も使うので関数として切り出しました
+ * 配列をランダムに並び替える関数
  */
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
