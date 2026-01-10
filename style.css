@@ -2,15 +2,14 @@
    1. ページ全体の基本設定
    ======================================== */
 body {
-    /* フォント（文字の形）を見やすく設定 */
+    /* フォント（文字の形）の設定 */
     font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-    /* 背景色を薄いグレーにする */
+    /* 背景色（薄いグレー） */
     background-color: #f0f2f5;
-    /* 文字の色を濃いグレーにする */
+    /* 文字色（濃いグレー） */
     color: #333;
-    /* 画面端の余白をなくす */
+    /* 余白のリセット */
     margin: 0;
-    /* 内側に少し余白をとる */
     padding: 20px;
 }
 
@@ -18,36 +17,26 @@ body {
    2. メインの枠組み (コンテナ)
    ======================================== */
 .container {
-    /* 横幅が広がりすぎないように最大800pxに制限 */
     max-width: 800px;
-    /* 画面の中央に配置する */
-    margin: 0 auto;
-    /* 背景を白にする */
+    margin: 0 auto; /* 画面中央に配置 */
     background-color: #ffffff;
-    /* 内側の余白を30pxとる */
     padding: 30px;
-    /* 角を少し丸くする */
-    border-radius: 8px;
-    /* 影をつけて少し浮き上がったように見せる */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 8px; /* 角を丸く */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* 影をつける */
 }
 
-/* タイトル (h1) のデザイン */
+/* タイトル (h1) */
 h1 {
-    /* 文字を中央揃え */
     text-align: center;
-    /* 文字色を落ち着いた青色に */
     color: #2c3e50;
-    /* 下に余白をとる */
     margin-bottom: 25px;
 }
 
-/* 小見出し (h3) のデザイン */
+/* 小見出し (h3) */
 h3 {
     margin-bottom: 10px;
     color: #555;
     font-size: 16px;
-    /* 下線を引き、区切りを分かりやすくする */
     border-bottom: 2px solid #eee;
     padding-bottom: 5px;
 }
@@ -59,64 +48,93 @@ h3 {
     margin-bottom: 30px;
 }
 
-/* リスト全体の設定 */
 #fixedMemberList {
-    /* 箇条書きの黒丸（・）を消す */
-    list-style: none;
-    /* 余白をリセット */
+    list-style: none; /* ・を消す */
     padding: 0;
     margin: 0 0 20px 0;
-    
-    /* グリッドレイアウト：名前をタイル状に並べる設定 */
     display: grid;
-    /* 幅が狭くなったら自動で折り返す設定（各カードの最小幅80px） */
+    /* 名前を自動で折り返してタイル状に並べる */
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    /* 名前ごとの間隔を10pxあける */
     gap: 10px;
 }
 
-/* 個々の名前カード (li) の設定 */
 #fixedMemberList li {
-    /* 背景を薄い青グレーにする */
     background-color: #eef2f7;
-    /* 内側の余白 */
     padding: 8px;
-    /* 文字を中央に */
     text-align: center;
-    /* 角を丸く */
     border-radius: 4px;
     font-size: 14px;
     color: #444;
 }
 
 /* ========================================
-   4. ボタンのデザイン
+   4. ボタン・操作エリアのデザイン
    ======================================== */
-button {
-    /* 横幅いっぱいに広げる */
+
+/* シャッフルボタン（青） */
+#shuffleBtn {
     display: block;
     width: 100%;
-    /* 大きめの余白で押しやすく */
     padding: 15px;
-    /* 背景色を鮮やかな青に */
-    background-color: #3498db;
-    /* 文字色を白に */
+    background-color: #3498db; 
     color: white;
-    /* 枠線なし */
     border: none;
-    /* 角丸 */
     border-radius: 5px;
     font-size: 18px;
     font-weight: bold;
-    /* マウスを乗せたときに指のカーソルにする */
     cursor: pointer;
-    /* 色が変わるアニメーションの時間 */
     transition: background-color 0.3s;
 }
+#shuffleBtn:hover {
+    background-color: #2980b9;
+}
 
-/* マウスが乗ったときの色変化 */
-button:hover {
-    background-color: #2980b9; /* 少し濃い青に */
+/* 非表示にするクラス（hiddenがついている要素は消える） */
+.hidden {
+    display: none;
+}
+
+/* 結果固定メッセージ */
+.lock-msg {
+    text-align: center;
+    font-weight: bold;
+    color: #27ae60;
+    margin-bottom: 10px;
+}
+
+/* URLコピーボタン（緑） */
+.btn-share {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: background-color 0.3s;
+}
+.btn-share:hover {
+    background-color: #219150;
+}
+
+/* リセットボタン（グレー） */
+.btn-reset {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #95a5a6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+}
+.btn-reset:hover {
+    background-color: #7f8c8d;
 }
 
 /* ========================================
@@ -124,36 +142,49 @@ button:hover {
    ======================================== */
 table {
     width: 100%;
-    /* 枠線の隙間をなくす */
-    border-collapse: collapse;
+    border-collapse: collapse; /* 枠線の隙間をなくす */
     margin-top: 20px;
 }
 
-/* ヘッダー(th)とセル(td)の共通設定 */
 th, td {
-    /* グレーの枠線を引く */
     border: 1px solid #ddd;
-    /* 内側の余白 */
     padding: 12px;
 }
 
-/* テーブルヘッダー(th)の設定 */
+/* ヘッダーの設定 */
 th {
-    background-color: #34495e; /* 暗い青色 */
-    color: white; /* 白文字 */
-    width: 40%; /* 幅を全体の40%に設定 */
-    
-    /* ★ヘッダーだけ中央揃えにする */
-    text-align: center;
+    background-color: #34495e;
+    color: white;
+    width: 40%;
+    text-align: center; /* 中央揃え */
 }
 
-/* テーブルの中身(td)の設定 */
+/* データセルの設定 */
 td {
-    /* ★中身のテキストは左寄せにする */
-    text-align: left;
+    text-align: left; /* 左寄せ */
+    vertical-align: middle; /* 上下中央揃え */
 }
 
-/* 偶数行（2行目、4行目...）の背景色を変えて見やすくする */
+/* ★「マニュアル」リンクのデザイン */
+.manual-link {
+    font-size: 0.85em;      /* 文字サイズを少し小さく */
+    color: #ffffff;         /* 白文字 */
+    background-color: #3498db; /* 青背景 */
+    text-decoration: none;  /* 下線を消す */
+    
+    margin-left: 10px;      /* 場所名との間隔 */
+    padding: 2px 8px;       /* 内側の余白 */
+    border-radius: 4px;     /* 角を丸く */
+    display: inline-block;  /* 崩れ防止 */
+}
+
+/* マウスを乗せたときの色変化 */
+.manual-link:hover {
+    background-color: #2980b9; 
+    text-decoration: none;
+}
+
+/* 偶数行の背景色を変える */
 tr:nth-child(even) {
     background-color: #f9f9f9;
 }
