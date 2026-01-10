@@ -37,125 +37,207 @@ const ngConfig = {
 
 
 /* ========================================
-  2. 画面読み込み時の処理
+  2. 初期化・イベント設定
   ======================================== */
+
+// HTMLの読み込みが完了したら実行されるブロック
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // シャッフルボタンを取得してクリックイベントを設定
     const btn = document.getElementById('shuffleBtn');
     if (btn) {
-        btn.addEventListener('click', runShuffle);
+        btn.addEventListener('click', handleShuffleClick);
     }
+
+    // ★重要: ページを開いた瞬間に、URLに保存されたデータがあるかチェックする
+    // これにより、共有されたURLを開いたときに同じ結果を表示できます
+    checkUrlData();
 });
 
+
 /* ========================================
-  3. シャッフル実行関数 (メインの処理)
+  3. メイン処理フロー
   ======================================== */
-function runShuffle() {
-    
-    // --- 手順1: HTMLから全メンバー名を取得 ---
-    const listItems = document.querySelectorAll('#fixedMemberList li');
-    
-    // 名前を取得してリスト化（前後の空白は削除）
-    let staffPool = Array.from(listItems).map(li => li.textContent.trim());
 
-    if (staffPool.length === 0) {
-        alert("エラー：メンバーが見つかりません。HTMLのリストを確認してください。");
-        return;
-    }
+/**
+ * 【ボタンクリック時】の処理
+ * 1. HTMLから名前を取得
+ * 2. シャッフル
+ * 3. 画面に表示
+ * 4. URLを書き換え（共有用）
+ */
+function handleShuffleClick() {
+    // 1. HTMLリストから全メンバー名を取得
+    const staffPool = getStaffListFromHtml();
+    if (!staffPool) return; // エラーなら中断
 
-    // --- 手順2: 全員をシャッフル（ランダム並び替え） ---
-    // まず全員をランダムに混ぜます
+    // 2. メンバー配列をランダムに並び替え
     shuffleArray(staffPool);
 
-    // --- 手順3: テーブルの準備 ---
+    // 3. 並び替えた順序で掃除箇所に割り当てて表示
+    assignAndRender(staffPool);
+
+    // 4. 結果（並び順）をURLに保存して、共有できるようにする
+    saveResultToUrl(staffPool);
+}
+
+/**
+ * 【ページ読み込み時】URLの確認処理
+ * URLに「?order=...」というデータがあれば、それを復元して表示します。
+ */
+function checkUrlData() {
+    // 現在のURLからパラメータ部分(?以降)を取得
+    const urlParams = new URLSearchParams(window.location.search);
+    const data = urlParams.get('order'); // orderという名前のデータを取得
+
+    if (data) {
+        // データがある場合（＝誰かが共有したURLを開いた場合）
+        try {
+            // URL用に変換されていた日本語を元に戻し、カンマで区切って配列にする
+            const savedOrder = decodeURIComponent(data).split(',');
+            
+            // 保存されていた順序のまま、割り当て処理を実行（シャッフルはしない）
+            assignAndRender(savedOrder);
+
+            // 共有モードであることを分かりやすくするため、ボタンの見た目を変える
+            const btn = document.getElementById('shuffleBtn');
+            if(btn) {
+                btn.textContent = "⚠ 共有された固定結果を表示中（クリックで再抽選）";
+                btn.style.backgroundColor = "#e67e22"; // ボタンをオレンジ色に変更
+            }
+
+        } catch (e) {
+            console.error("データの読み込みに失敗しました", e);
+        }
+    }
+}
+
+
+/* ========================================
+  4. 割り当てロジック (Assign Logic)
+  ======================================== */
+
+/**
+ * 渡されたメンバーリストの順序に従って、掃除箇所を割り当て、表を描画する関数
+ * @param {Array} staffList - 順序決定済みのメンバー配列
+ */
+function assignAndRender(staffList) {
+    
+    // 元の配列を壊さないようにコピーを作成して作業用プールにする
+    let currentPool = [...staffList];
+
+    // 結果表示用のテーブル本体(tbody)を取得し、中身をクリアする
     const tbody = document.querySelector('#resultTable tbody');
     if (!tbody) return; 
-    tbody.innerHTML = ""; // 前回の結果をクリア
+    tbody.innerHTML = ""; 
 
-    // --- 手順4: 割り当て処理（NGリストを考慮） ---
-    
-    // 場所ごとにループ処理
+    // 設定データ(cleaningConfig)にある場所を順番に処理
     cleaningConfig.forEach(location => {
+        let assignedMembers = []; // この場所に決まった人リスト
         
-        let assignedMembers = []; // この場所に決まった人を入れる箱
-        
-        // この場所の「NGメンバーリスト」を取得（設定がなければ空の配列）
-        // ngConfig["トイレ×2"] のような形で取得します
+        // この場所のNG設定を取得（なければ空の配列）
         const ngList = ngConfig[location.name] || [];
 
         // --- 候補者選びのループ ---
-        // staffPool（残っている人）の中から、条件に合う人を探します
-        
-        // staffPoolを先頭から順番にチェックしていく
-        // (forループを逆回しにしているのは、途中で要素を削除(splice)してもインデックスがズレないようにするため)
-        for (let i = 0; i < staffPool.length; i++) {
+        // プールにいる人を先頭から順にチェック
+        for (let i = 0; i < currentPool.length; i++) {
             
-            // 必要な人数が集まったら探すのをやめる
-            if (assignedMembers.length >= location.capacity) {
-                break;
-            }
+            // 定員に達したら終了
+            if (assignedMembers.length >= location.capacity) break;
 
-            // 今チェックしている人
-            const candidate = staffPool[i];
+            const candidate = currentPool[i]; // 候補者
 
-            // ★判定：この人は、この場所のNGリストに含まれているか？
+            // ★NGチェック: その人がNGリストに入っていなければ採用
             if (!ngList.includes(candidate)) {
-                // NGに含まれていない（＝担当OK）なら
                 
-                // 1. 担当者に決定
+                // 採用リストに追加
                 assignedMembers.push(candidate);
                 
-                // 2. 候補者リスト(staffPool)から削除する
-                staffPool.splice(i, 1);
+                // プールから削除（もう他の場所には割り当たらない）
+                currentPool.splice(i, 1);
                 
-                // 3. 配列を削除してズレた分、インデックス(i)を1つ戻す
+                // 配列を削除してズレた分、インデックスを戻す
                 i--; 
             }
-            // NGリストに含まれている人は、スルーして次の人をチェックします
         }
 
-        // --- 手順5: 行を作成して表示 ---
+        // --- テーブルに行を追加 ---
         const tr = document.createElement('tr');
-
-        // 場所セル
+        
+        // 場所名のセル
         const tdPlace = document.createElement('td');
         tdPlace.textContent = location.name;
         tr.appendChild(tdPlace);
 
-        // 名前セル
+        // 担当者名のセル
         const tdName = document.createElement('td');
-        
         if (assignedMembers.length > 0) {
+            // 名前を「、」区切りで表示
             tdName.textContent = assignedMembers.join('、 ');
         } else {
-            // 誰も割り当てられなかった場合（全員がNGだった場合など）
+            // 誰も決まらなかった場合
             tdName.textContent = "（適任者なし・要調整）";
-            tdName.style.color = "#e74c3c"; // 赤文字にする
+            tdName.style.color = "#e74c3c"; // 赤文字
         }
         tr.appendChild(tdName);
-
+        
         tbody.appendChild(tr);
     });
 
-    // --- 手順6: 最後に余った人の処理 ---
-    if (staffPool.length > 0) {
+    // --- 最後に余った人の処理 ---
+    if (currentPool.length > 0) {
         const tr = document.createElement('tr');
         
         const tdPlace = document.createElement('td');
         tdPlace.textContent = "予備・待機";
-        tdPlace.style.backgroundColor = "#fffde7"; 
+        tdPlace.style.backgroundColor = "#fffde7"; // 背景を薄い黄色に
         tr.appendChild(tdPlace);
         
         const tdName = document.createElement('td');
-        tdName.textContent = staffPool.join('、 ');
+        tdName.textContent = currentPool.join('、 ');
         tdName.style.backgroundColor = "#fffde7";
         tr.appendChild(tdName);
-
+        
         tbody.appendChild(tr);
     }
 }
 
+
+/* ========================================
+  5. ユーティリティ関数（便利な道具たち）
+  ======================================== */
+
 /**
- * 配列をランダムに並び替える関数
+ * 結果（メンバーの並び順）をURLパラメータとして保存する関数
+ */
+function saveResultToUrl(staffList) {
+    // メンバー名をカンマ区切りにし、日本語をURLで使える文字コードに変換
+    // （例: "佐藤,鈴木" → "%E4%BD%90%E8%97%A4,%E9%88%B4%E6%9C%A8"）
+    const orderString = encodeURIComponent(staffList.join(','));
+    
+    // 現在のURLの後ろに「?order=...」を追加した新しいURLを作成
+    const newUrl = window.location.pathname + '?order=' + orderString;
+    
+    // ブラウザの履歴を変更（画面のリロードはせずにURLだけ変える技術）
+    window.history.pushState({path: newUrl}, '', newUrl);
+}
+
+/**
+ * HTMLのリストからメンバー名を取得する関数
+ */
+function getStaffListFromHtml() {
+    const listItems = document.querySelectorAll('#fixedMemberList li');
+    if (listItems.length === 0) {
+        alert("エラー：メンバーが見つかりません。");
+        return null;
+    }
+    // テキストを取り出して配列にして返す
+    return Array.from(listItems).map(li => li.textContent.trim());
+}
+
+/**
+ * 配列をランダムにシャッフルする関数
+ * （フィッシャー–イェーツのシャッフル アルゴリズム）
  */
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
