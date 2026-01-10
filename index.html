@@ -1,20 +1,16 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>掃除当番シャッフル決定表</title>
-    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="container">
         
-        <h1>シャッフル掃除当番</h1>
+        <h1>掃除当番シャッフル決定</h1>
 
         <div class="member-area">
             <h3>対象メンバー（計12名）</h3>
@@ -34,19 +30,31 @@
                 <li>阿利</li>
             </ul>
             
-            <button id="shuffleBtn">シャッフルして決定</button>
+            <div id="actionArea">
+                <button id="shuffleBtn">シャッフルして決定</button>
+
+                <div id="shareArea" class="hidden">
+                    <p class="lock-msg">✅ 結果は固定されました</p>
+                    
+                    <button id="copyUrlBtn" class="btn-share">🔗 共有用URLをコピー</button>
+                    
+                    <button id="resetBtn" class="btn-reset">↺ 固定を解除してリセット</button>
+                </div>
+            </div>
         </div>
 
         <div class="result-area">
             <table id="resultTable">
                 <thead>
                     <tr>
-                        <th>掃除箇所</th> <th>担当者</th>   </tr>
+                        <th>掃除箇所</th>
+                        <th>担当者</th>
+                    </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td colspan="2" style="text-align:center; color:#999;">
-                            ボタンを押すとここに結果が表示されます
+                            ボタンを押すと結果が表示されます
                         </td>
                     </tr>
                 </tbody>
