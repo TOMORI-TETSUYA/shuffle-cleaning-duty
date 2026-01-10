@@ -4,7 +4,7 @@
 
 // 掃除する場所と、必要な人数の設定
 const cleaningConfig = [
-{ name: "トイレ×2", capacity: 1 },                 // 必要人数: 1人
+    { name: "トイレ(2ヵ所)", capacity: 1 },              // 必要人数: 1人
     { name: "リフレッシュルーム", capacity: 1 },         // 必要人数: 1人
     { name: "面談室", capacity: 1 },                     // 必要人数: 1人
     { name: "キッチン", capacity: 1 },                   // 必要人数: 1人
