@@ -11,7 +11,7 @@ const cleaningConfig = [
     { name: "1Fフロア(廊下込み)", capacity: 3 },         // 必要人数: 3人
     { name: "タオル洗濯", capacity: 1 },                 // 必要人数: 1人
     { name: "玄関", capacity: 1 },                       // 必要人数: 1人
-    { name: "外(屋外)", capacity: 2 },                   // 必要人数: 2人
+    { name: "外(屋外)*中庭は無し", capacity: 2 },                   // 必要人数: 2人
     { name: "外(太陽光パネル下)", capacity: 1 }          // 必要人数: 1人        
 ];
 
