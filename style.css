@@ -1,64 +1,80 @@
 /* ========================================
-   1. ページ全体の基本設定
+   1. 基本設定
    ======================================== */
 body {
-    /* フォント（文字の形）の設定 */
     font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-    /* 背景色（薄いグレー） */
-    background-color: #f0f2f5;
-    /* 文字色（濃いグレー） */
-    color: #333;
-    /* 余白のリセット */
+    background-color: #f0f2f5; /* 背景色: 薄いグレー */
+    color: #333; /* 文字色: 濃いグレー */
     margin: 0;
     padding: 20px;
 }
 
-/* ========================================
-   2. メインの枠組み (コンテナ)
-   ======================================== */
 .container {
     max-width: 800px;
-    margin: 0 auto; /* 画面中央に配置 */
-    background-color: #ffffff;
+    margin: 0 auto; /* 中央寄せ */
+    background-color: #ffffff; /* 白背景 */
     padding: 30px;
-    border-radius: 8px; /* 角を丸く */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* 影をつける */
+    border-radius: 8px; /* 角丸 */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* 影 */
 }
 
-/* タイトル (h1) */
 h1 {
     text-align: center;
     color: #2c3e50;
     margin-bottom: 25px;
 }
 
-/* 小見出し (h3) */
-h3 {
-    margin-bottom: 10px;
-    color: #555;
-    font-size: 16px;
+/* ========================================
+   2. タブメニューのデザイン
+   ======================================== */
+.tab-menu {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
     border-bottom: 2px solid #eee;
-    padding-bottom: 5px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    color: #7f8c8d;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-btn:hover {
+    color: #3498db;
+}
+
+/* 選択中のタブのデザイン */
+.tab-btn.active {
+    color: #3498db;
+    border-bottom: 3px solid #3498db;
 }
 
 /* ========================================
-   3. メンバーリストのデザイン
+   3. メイン画面のデザイン
    ======================================== */
-.member-area {
-    margin-bottom: 30px;
+.member-area h3 {
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
+    color: #555;
 }
 
-#fixedMemberList {
-    list-style: none; /* ・を消す */
+/* メンバーリスト（タイル状） */
+#displayMemberList {
+    list-style: none;
     padding: 0;
     margin: 0 0 20px 0;
     display: grid;
-    /* 名前を自動で折り返してタイル状に並べる */
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     gap: 10px;
 }
 
-#fixedMemberList li {
+#displayMemberList li {
     background-color: #eef2f7;
     padding: 8px;
     text-align: center;
@@ -67,11 +83,7 @@ h3 {
     color: #444;
 }
 
-/* ========================================
-   4. ボタン・操作エリアのデザイン
-   ======================================== */
-
-/* シャッフルボタン（青） */
+/* ボタン類 */
 #shuffleBtn {
     display: block;
     width: 100%;
@@ -83,26 +95,9 @@ h3 {
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s;
 }
-#shuffleBtn:hover {
-    background-color: #2980b9;
-}
+#shuffleBtn:hover { background-color: #2980b9; }
 
-/* 非表示にするクラス（hiddenがついている要素は消える） */
-.hidden {
-    display: none;
-}
-
-/* 結果固定メッセージ */
-.lock-msg {
-    text-align: center;
-    font-weight: bold;
-    color: #27ae60;
-    margin-bottom: 10px;
-}
-
-/* URLコピーボタン（緑） */
 .btn-share {
     display: block;
     width: 100%;
@@ -115,13 +110,8 @@ h3 {
     font-weight: bold;
     cursor: pointer;
     margin-bottom: 10px;
-    transition: background-color 0.3s;
-}
-.btn-share:hover {
-    background-color: #219150;
 }
 
-/* リセットボタン（グレー） */
 .btn-reset {
     display: block;
     width: 100%;
@@ -133,58 +123,129 @@ h3 {
     font-size: 14px;
     cursor: pointer;
 }
-.btn-reset:hover {
-    background-color: #7f8c8d;
-}
 
-/* ========================================
-   5. 結果テーブルのデザイン
-   ======================================== */
+.hidden { display: none; }
+.lock-msg { text-align: center; font-weight: bold; color: #27ae60; margin-bottom: 10px; }
+
+/* テーブル設定 */
 table {
     width: 100%;
-    border-collapse: collapse; /* 枠線の隙間をなくす */
+    border-collapse: collapse;
     margin-top: 20px;
 }
+th, td { border: 1px solid #ddd; padding: 12px; }
+th { background-color: #34495e; color: white; width: 40%; text-align: center; }
+td { text-align: left; vertical-align: middle; }
+tr:nth-child(even) { background-color: #f9f9f9; }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 12px;
-}
-
-/* ヘッダーの設定 */
-th {
-    background-color: #34495e;
-    color: white;
-    width: 40%;
-    text-align: center; /* 中央揃え */
-}
-
-/* データセルの設定 */
-td {
-    text-align: left; /* 左寄せ */
-    vertical-align: middle; /* 上下中央揃え */
-}
-
-/* ★「マニュアル」リンクのデザイン */
+/* ★マニュアルリンクのデザイン */
 .manual-link {
-    font-size: 0.85em;      /* 文字サイズを少し小さく */
-    color: #ffffff;         /* 白文字 */
-    background-color: #3498db; /* 青背景 */
-    text-decoration: none;  /* 下線を消す */
-    
-    margin-left: 10px;      /* 場所名との間隔 */
-    padding: 2px 8px;       /* 内側の余白 */
-    border-radius: 4px;     /* 角を丸く */
-    display: inline-block;  /* 崩れ防止 */
-}
-
-/* マウスを乗せたときの色変化 */
-.manual-link:hover {
-    background-color: #2980b9; 
+    font-size: 0.85em;
+    color: #ffffff;
+    background-color: #3498db;
     text-decoration: none;
+    margin-left: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+.manual-link:hover { background-color: #2980b9; }
+
+
+/* ========================================
+   4. 管理画面のデザイン
+   ======================================== */
+.admin-section {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #eee;
 }
 
-/* 偶数行の背景色を変える */
-tr:nth-child(even) {
-    background-color: #f9f9f9;
+.admin-section h3 {
+    margin-top: 0;
+    font-size: 16px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.input-group-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.input-group-column .row {
+    display: flex;
+    gap: 10px;
+}
+
+input[type="text"], input[type="number"], select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex: 1; /* 横幅いっぱいに広げる */
+}
+
+.btn-add {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.btn-add:hover { background-color: #2980b9; }
+
+/* 管理画面のリスト */
+.admin-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto; /* 長くなったらスクロール */
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.admin-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+}
+
+.admin-list li:last-child { border-bottom: none; }
+
+/* 削除・解除ボタン */
+.btn-del {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+.btn-del:hover { background-color: #c0392b; }
+
+.admin-note {
+    font-size: 12px;
+    color: #e67e22;
+    background: #fff3e0;
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 15px;
 }
