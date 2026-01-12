@@ -10,56 +10,110 @@
 
     <div class="container">
         
-        <h1>シャッフル掃除当番決定表</h1>
+        <h1>掃除当番決定表</h1>
 
-        <div class="member-area">
-            <h3>対象メンバー（計12名）</h3>
-            
-            <ul id="fixedMemberList">
-                <li>又吉</li>
-                <li>友利</li>
-                <li>礼夫</li>
-                <li>安藤</li>
-                <li>砂川</li>
-                <li>玉城</li>
-                <li>大空</li>
-                <li>真栄城</li>
-                <li>宮城</li>
-                <li>名城</li>
-                <li>新里</li>
-                <li>阿利</li>
-            </ul>
-            
-            <div id="actionArea">
-                <button id="shuffleBtn">シャッフルして決定</button>
+        <div class="tab-menu">
+            <button id="tabMain" class="tab-btn active">🏠 シャッフル画面</button>
+            <button id="tabAdmin" class="tab-btn">⚙️ 管理・設定画面</button>
+        </div>
 
-                <div id="shareArea" class="hidden">
-                    <p class="lock-msg">✅ 結果は固定されました</p>
-                    
-                    <button id="copyUrlBtn" class="btn-share">🔗 共有用URLをコピー</button>
-                    
-                    <button id="resetBtn" class="btn-reset">↺ 固定を解除してリセット</button>
+        <div id="mainView">
+            
+            <div class="member-area">
+                <h3 id="memberCountTitle">対象メンバー</h3>
+                
+                <ul id="displayMemberList">
+                    </ul>
+                
+                <div id="actionArea">
+                    <button id="shuffleBtn">シャッフルして決定</button>
+
+                    <div id="shareArea" class="hidden">
+                        <p class="lock-msg">✅ 結果は固定されました</p>
+                        <button id="copyUrlBtn" class="btn-share">🔗 共有用URLをコピー</button>
+                        <button id="resetBtn" class="btn-reset">↺ 固定を解除してリセット</button>
+                    </div>
                 </div>
+            </div>
+
+            <div class="result-area">
+                <table id="resultTable">
+                    <thead>
+                        <tr>
+                            <th>掃除箇所</th>
+                            <th>担当者</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="2" style="text-align:center; color:#999;">
+                                ボタンを押すと結果が表示されます
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <div class="result-area">
-            <table id="resultTable">
-                <thead>
-                    <tr>
-                        <th>掃除箇所</th>
-                        <th>担当者</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="2" style="text-align:center; color:#999;">
-                            ボタンを押すと結果が表示されます
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div id="adminView" class="hidden">
+            
+            <p class="admin-note">
+                ※メンバーや場所の追加・削除はここで行います。<br>
+                ※設定はお使いのブラウザに自動保存されます。<br>
+                ※マニュアルのURLは「script.js」ファイルを直接編集して設定してください。
+            </p>
+
+            <div class="admin-section">
+                <h3>👤 担当者の追加・削除</h3>
+                <div class="input-group">
+                    <input type="text" id="newStaffName" placeholder="名前を入力 (例: 佐藤)">
+                    <button id="addStaffBtn" class="btn-add">追加</button>
+                </div>
+                <ul id="adminStaffList" class="admin-list"></ul>
+            </div>
+
+            <div class="admin-section">
+                <h3>🧹 掃除箇所の追加・削除</h3>
+                <div class="input-group-column">
+                    <input type="text" id="newLocName" placeholder="場所名 (例: トイレ)">
+                    <div class="row">
+                        <span style="font-size:14px; align-self:center;">必要人数:</span>
+                        <input type="number" id="newLocCap" placeholder="人数" value="1" min="1" style="width:60px;">
+                    </div>
+                    <button id="addLocBtn" class="btn-add">追加</button>
+                </div>
+                <ul id="adminLocList" class="admin-list"></ul>
+            </div>
+
+            <div class="admin-section">
+                <h3>🚫 除外設定 (この場所はやらない)</h3>
+                <p style="font-size:12px; color:#666;">
+                    「特定の場所」を「担当できない人」を選んで追加してください。
+                </p>
+                
+                <div class="input-group-column">
+                    <div class="row">
+                        <select id="ngLocSelect" style="flex:1;">
+                            <option value="">場所を選択...</option>
+                        </select>
+                        
+                        <select id="ngStaffSelect" style="flex:1;">
+                            <option value="">人を選択...</option>
+                        </select>
+                    </div>
+                    
+                    <button id="addNgBtn" class="btn-add">設定を追加</button>
+                </div>
+                
+                <ul id="adminNgList" class="admin-list"></ul>
+            </div>
+
+            <div style="margin-top: 40px; text-align: right;">
+                <button id="resetAllDataBtn" style="background:#e74c3c; color:white; border:none; padding:8px; border-radius:4px; font-size:12px;">⚠ 全データを初期状態に戻す</button>
+            </div>
+
         </div>
+
     </div>
 
     <script src="script.js"></script>
