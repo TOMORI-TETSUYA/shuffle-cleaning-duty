@@ -14,7 +14,7 @@ const allowedUsers = [
     { id: "support",  pass: "sooness" },
     
     // 2人目
-    { id: "admin",    pass: "12345678" },
+    { id: "admin",    pass: "tomori" },
     
     // 3人目
     { id: "sunagawa", pass: "postcl26" },
