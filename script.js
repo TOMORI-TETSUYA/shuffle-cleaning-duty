@@ -1,41 +1,21 @@
 /* ========================================
-  1. ログインユーザー設定 (Javascript管理)
+  1. ログインユーザー設定
   ======================================== */
-
-/**
- * ★ログイン情報リスト
- * ここで管理画面に入れるユーザーを定義します。
- * * 【ユーザーの追加方法】
- * { id: "ユーザー名", pass: "パスワード" }, 
- * の形式で行を増やせば、何人でも追加可能です。
- */
 const allowedUsers = [
-    // 1人目
-    { id: "support",  pass: "sooness" },
-    
-    // 2人目
-    { id: "admin",    pass: "tomori" },
-    
-    // 3人目
-    { id: "sunagawa", pass: "postcl26" },
-
-    // ★ユーザーを増やしたい場合は、下の行の // を消して書き換えてください
-    // { id: "newuser",  pass: "password" },
+    { id: "admin", pass: "tomori" },
+    { id: "support",   pass: "sooness" },
+    { id: "sunagawa", pass: "postcl26" }
 ];
 
-
 /* ========================================
-  2. 初期データの定義 (初めて使う時・リセット時用)
+  2. 初期データの定義
   ======================================== */
-
-// 初期メンバーリスト（合計12名）
 const defaultStaffList = [
     "又吉", "友利", "礼夫", "安藤", 
     "砂川", "玉城", "大空", "真栄城", 
     "宮城", "名城", "新里", "阿利"
 ];
 
-// 初期掃除箇所リスト (名前, 定員, URL)
 const defaultConfigList = [
     { name: "トイレ(2ヵ所)", capacity: 1, url: "https://docs.google.com/document/d/1d9M6AsLvhnZlsUbO__Lh2InYCsoxjx16uYjQ0IudrpE/edit?usp=drive_link" },
     { name: "リフレッシュルーム", capacity: 1, url: "https://docs.google.com/document/d/1dZvblus_RmpP5nOO_fD9WbUtDKZ23VnlPKeVDWV4U7s/edit?usp=drive_link" },
@@ -48,153 +28,90 @@ const defaultConfigList = [
     { name: "外(太陽光パネル下)", capacity: 1, url: "https://docs.google.com/document/d/1sYhX8XCx311eaC-aZhY6buF5fQxhlxe4pAFjmZLLa-U/edit?usp=drive_link" }
 ];
 
-// 初期NG設定リスト
 const defaultNgList = [
     { location: "トイレ(2ヵ所)", staff: "宮城" },
     { location: "トイレ(2ヵ所)", staff: "名城" }
 ];
 
-
 /* ========================================
-  3. 状態管理変数 (アプリ内のデータ)
+  3. 状態管理変数
   ======================================== */
-let staffList = [];       // メンバーリスト
-let cleaningConfig = [];  // 掃除箇所リスト (名前, 人数, URL)
-let ngList = [];          // NG設定リスト
-let isLoggedIn = false;   // ログイン状態フラグ
-
+let staffList = [];       
+let cleaningConfig = [];  
+let ngList = [];          
+let isLoggedIn = false;   
 
 /* ========================================
   4. 起動時の処理
   ======================================== */
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // (A) ブラウザ保存データの読み込み
-    // ※保存データがない場合やURLが空の場合は初期設定を使用します
     loadData();
-
-    // (B) 画面の初期描画（リストや人数表示など）
     renderAll();
-
-    // (C) ボタン操作の設定
     setupEventListeners();
-
-    // (D) URL共有データの確認（結果URLを開いた場合）
     checkUrlData();
-    
-    // (E) 最初のタブをセット
     switchTab('main');
 });
-
 
 /* ========================================
   5. ログイン機能
   ======================================== */
-
-/**
- * ログインボタンが押されたときの処理
- */
 function handleLogin() {
     const userInput = document.getElementById('loginUser').value.trim();
     const passInput = document.getElementById('loginPass').value.trim();
     const errorMsg = document.getElementById('loginErrorMsg');
-
     errorMsg.textContent = "";
 
-    // ユーザー照合
-    // 設定された allowedUsers リストの中から一致する人を探します
     const validUser = allowedUsers.find(user => user.id === userInput && user.pass === passInput);
 
     if (validUser) {
-        // ログイン成功
         isLoggedIn = true;
         document.getElementById('adminLoginPanel').classList.add('hidden');
         document.getElementById('adminConfigPanel').classList.remove('hidden');
-        
-        // 入力クリア
         document.getElementById('loginUser').value = "";
         document.getElementById('loginPass').value = "";
-
     } else {
-        // 失敗
         errorMsg.textContent = "ユーザー名かパスワードが間違っています";
     }
 }
 
-/**
- * ログアウト処理
- */
 function handleLogout() {
     isLoggedIn = false;
     document.getElementById('adminLoginPanel').classList.remove('hidden');
     document.getElementById('adminConfigPanel').classList.add('hidden');
 }
 
-/**
- * パスワード表示の切り替え
- */
 function togglePasswordVisibility() {
     const passInput = document.getElementById('loginPass');
     const checkbox = document.getElementById('showPassCheck');
     passInput.type = checkbox.checked ? "text" : "password";
 }
 
-
 /* ========================================
-  6. データ保存・読み込み (Local Storage)
+  6. データ保存・読み込み
   ======================================== */
-
-/**
- * データを読み込む関数
- * ★保存データのURLが空でも、初期データにURLがあれば修復します
- */
 function loadData() {
-    // メンバーの読み込み
     const storedStaff = localStorage.getItem('cleaning_staffList');
     staffList = storedStaff ? JSON.parse(storedStaff) : [...defaultStaffList];
 
-    // 掃除箇所の読み込み
     const storedConfig = localStorage.getItem('cleaning_config');
     if (storedConfig) {
-        // 保存データを読み込む
         let loadedConfig = JSON.parse(storedConfig);
-        
-        // ★データの修復・補完処理
-        // 保存データのURLが空の場合は、初期設定のURLを使って補完する
         cleaningConfig = loadedConfig.map(savedLoc => {
-            // 初期設定から同じ名前の場所を探す
             const defaultLoc = defaultConfigList.find(d => d.name === savedLoc.name);
-            
-            // 保存データのURLが空 または 未定義 で、初期データにはURLがある場合
             if (defaultLoc && defaultLoc.url !== "" && (!savedLoc.url || savedLoc.url === "")) {
-                return {
-                    ...savedLoc,
-                    url: defaultLoc.url // URLを復活させる
-                };
+                return { ...savedLoc, url: defaultLoc.url };
             }
             return savedLoc;
         });
-        
-        // 補完したデータを再度保存しておく
         saveData();
     } else {
-        // 保存データがなければ初期データをそのまま使う
         cleaningConfig = JSON.parse(JSON.stringify(defaultConfigList));
     }
 
-    // NGリストの読み込み
     const storedNg = localStorage.getItem('cleaning_ngList');
-    if (storedNg) {
-        ngList = JSON.parse(storedNg);
-    } else {
-        // 保存データがなければ初期データ(defaultNgList)を使う
-        ngList = JSON.parse(JSON.stringify(defaultNgList));
-    }
+    ngList = storedNg ? JSON.parse(storedNg) : JSON.parse(JSON.stringify(defaultNgList));
 }
 
-/**
- * データをブラウザに保存する
- */
 function saveData() {
     localStorage.setItem('cleaning_staffList', JSON.stringify(staffList));
     localStorage.setItem('cleaning_config', JSON.stringify(cleaningConfig));
@@ -202,36 +119,40 @@ function saveData() {
 }
 
 /**
- * データを初期化する（リセットボタン）
+ * ★全データを初期状態に戻す処理
+ * ログアウトしないように、ページリロードではなくデータの再読み込みを行います。
  */
 function resetAllData() {
     if(!confirm("本当に全てのデータを初期状態に戻しますか？\n追加したメンバーや設定も消えます。")) return;
     
+    // 1. 保存されているデータを削除する
     localStorage.removeItem('cleaning_staffList');
     localStorage.removeItem('cleaning_config');
     localStorage.removeItem('cleaning_ngList');
-    location.reload(); // ページを再読み込みして初期状態を表示
-}
+    
+    // 2. データを初期状態から読み込み直す (loadData関数内で初期データがセットされる)
+    loadData();
 
+    // 3. 画面の表示を更新する
+    renderAll();
+
+    // 4. メッセージを表示
+    alert("データを初期状態に戻しました。（ログアウトはしていません）");
+    
+    // ※以前あった location.reload() は削除しました
+}
 
 /* ========================================
   7. 画面描画 (Rendering)
   ======================================== */
-
-/**
- * 全ての画面要素を更新する関数
- */
 function renderAll() {
-    renderMainViewMember(); // メイン画面のメンバーと人数
-    renderAdminStaff();     // 管理画面のメンバー
-    renderAdminLocation();  // 管理画面の掃除場所
-    renderAdminNg();        // 管理画面のNG設定
-    updateNgSelectOptions(); // プルダウン更新
+    renderMainViewMember(); 
+    renderAdminStaff();     
+    renderAdminLocation();  
+    renderAdminNg();        
+    updateNgSelectOptions(); 
 }
 
-/**
- * メイン画面のメンバーリストと【人数表示】を更新
- */
 function renderMainViewMember() {
     const ul = document.getElementById('displayMemberList');
     ul.innerHTML = "";
@@ -240,14 +161,9 @@ function renderMainViewMember() {
         li.textContent = name;
         ul.appendChild(li);
     });
-    
-    // ★ここで人数を自動更新します
     document.getElementById('memberCountTitle').textContent = `対象メンバー（計${staffList.length}名）`;
 }
 
-/**
- * 管理画面：担当者リスト更新
- */
 function renderAdminStaff() {
     const ul = document.getElementById('adminStaffList');
     ul.innerHTML = "";
@@ -258,34 +174,20 @@ function renderAdminStaff() {
     });
 }
 
-/**
- * 管理画面：掃除箇所リスト更新
- * ★ここで「[Link設定あり]」の表示を行います
- */
 function renderAdminLocation() {
     const ul = document.getElementById('adminLocList');
     ul.innerHTML = "";
-    
     cleaningConfig.forEach((loc, index) => {
         const li = document.createElement('li');
-        
-        // 基本情報（名前と定員）
         let info = `<b>${loc.name}</b> (${loc.capacity}人)`;
-        
-        // ★保存されているデータ(loc.url)にURLがあるかチェック
         if(loc.url && loc.url !== "") {
-            // 設定されていれば「[Link設定あり]」を追加表示
             info += ` <span class="url-status">[Link設定あり]</span>`;
         }
-        
         li.innerHTML = `<span>${info}</span> <button class="btn-del" onclick="deleteLocation(${index})">削除</button>`;
         ul.appendChild(li);
     });
 }
 
-/**
- * 管理画面：NG設定リスト更新
- */
 function renderAdminNg() {
     const ul = document.getElementById('adminNgList');
     ul.innerHTML = "";
@@ -296,9 +198,6 @@ function renderAdminNg() {
     });
 }
 
-/**
- * NG設定用のプルダウン選択肢を更新
- */
 function updateNgSelectOptions() {
     const locSelect = document.getElementById('ngLocSelect');
     locSelect.innerHTML = '<option value="">場所を選択...</option>';
@@ -319,19 +218,16 @@ function updateNgSelectOptions() {
     });
 }
 
-
 /* ========================================
   8. データ操作 (追加・削除)
   ======================================== */
-
-// --- 担当者 ---
 function addStaff() {
     const input = document.getElementById('newStaffName');
     const name = input.value.trim();
     if (!name) return alert("名前を入力してください");
     staffList.push(name);
     saveData(); 
-    renderAll(); // 追加後に画面更新
+    renderAll(); 
     input.value = "";
 }
 
@@ -344,26 +240,22 @@ function deleteStaff(index) {
     renderAll(); 
 }
 
-// --- 掃除箇所 (URLもここで登録) ---
 function addLocation() {
     const nameInput = document.getElementById('newLocName');
     const capInput = document.getElementById('newLocCap');
-    const urlInput = document.getElementById('newLocUrl'); // ★URL入力欄
+    const urlInput = document.getElementById('newLocUrl'); 
     
     const name = nameInput.value.trim();
     const capacity = parseInt(capInput.value);
-    const url = urlInput.value.trim(); // ★入力されたURL
+    const url = urlInput.value.trim(); 
 
     if (!name) return alert("場所名を入力してください");
     if (capacity < 1) return alert("人数は1人以上にしてください");
 
-    // リストに名前、人数、URLをまとめて保存
     cleaningConfig.push({ name, capacity, url });
-    
     saveData(); 
     renderAll();
     
-    // 入力欄クリア
     nameInput.value = "";
     capInput.value = "1";
     urlInput.value = "";
@@ -377,7 +269,6 @@ function deleteLocation(index) {
     saveData(); renderAll();
 }
 
-// --- NG設定 ---
 function addNg() {
     const locSelect = document.getElementById('ngLocSelect');
     const staffSelect = document.getElementById('ngStaffSelect');
@@ -400,11 +291,9 @@ function deleteNg(index) {
     saveData(); renderAll();
 }
 
-// HTMLから関数を呼べるようにwindowに登録
 window.deleteStaff = deleteStaff;
 window.deleteLocation = deleteLocation;
 window.deleteNg = deleteNg;
-
 
 /* ========================================
   9. イベント設定
@@ -425,6 +314,10 @@ function setupEventListeners() {
     document.getElementById('addLocBtn').addEventListener('click', addLocation);
     document.getElementById('addNgBtn').addEventListener('click', addNg);
     document.getElementById('resetAllDataBtn').addEventListener('click', resetAllData);
+
+    document.getElementById('excelBtn').addEventListener('click', exportToExcel);
+    document.getElementById('pdfBtn').addEventListener('click', exportToPDF);
+    document.getElementById('htmlBtn').addEventListener('click', openResultInNewTab);
 }
 
 function switchTab(tabName) {
@@ -444,7 +337,6 @@ function switchTab(tabName) {
         tabMain.classList.remove('active');
         tabAdmin.classList.add('active');
 
-        // ログイン状態によって表示を切り替え
         if (isLoggedIn) {
             document.getElementById('adminLoginPanel').classList.add('hidden');
             document.getElementById('adminConfigPanel').classList.remove('hidden');
@@ -455,11 +347,9 @@ function switchTab(tabName) {
     }
 }
 
-
 /* ========================================
-  10. シャッフルロジック (メイン機能)
+  10. シャッフルロジック
   ======================================== */
-
 function handleShuffleClick() {
     if (staffList.length === 0) return alert("メンバーがいません。");
     const currentPool = [...staffList];
@@ -489,13 +379,11 @@ function assignAndRender(shuffledStaff) {
             }
         }
 
-        // 行作成
         const tr = document.createElement('tr');
         const tdPlace = document.createElement('td');
         
         tdPlace.appendChild(document.createTextNode(loc.name));
         
-        // ★データに保存されたURLがある場合、リンクを作成して表示
         if (loc.url && loc.url !== "") {
             const link = document.createElement('a');
             link.href = loc.url;
@@ -539,11 +427,9 @@ function shuffleArray(array) {
     }
 }
 
-
 /* ========================================
   11. URL共有・復元機能
   ======================================== */
-
 function updateUrlAndLock(staffOrder) {
     const orderString = encodeURIComponent(staffOrder.join(','));
     const newUrl = window.location.pathname + '?order=' + orderString;
@@ -551,6 +437,9 @@ function updateUrlAndLock(staffOrder) {
     
     document.getElementById('shuffleBtn').style.display = 'none';
     document.getElementById('shareArea').classList.remove('hidden');
+
+    document.getElementById('copyUrlBtn').style.display = 'block';
+    document.getElementById('resetBtn').style.display = 'block';
 }
 
 function checkUrlData() {
@@ -562,6 +451,10 @@ function checkUrlData() {
             assignAndRender(savedOrder);
             document.getElementById('shuffleBtn').style.display = 'none';
             document.getElementById('shareArea').classList.remove('hidden');
+
+            document.getElementById('copyUrlBtn').style.display = 'none';
+            document.getElementById('resetBtn').style.display = 'none';
+
         } catch (e) {
             console.error(e);
         }
@@ -585,4 +478,162 @@ function copyUrlToClipboard() {
     }).catch(() => {
         prompt("コピーしてください:", url);
     });
+}
+
+/* ========================================
+  12. ダウンロード・別タブ表示機能
+  ======================================== */
+function exportToExcel() {
+    const table = document.getElementById('resultTable');
+    let data = [];
+    let urls = [];
+
+    data.push(["掃除当番決定表"]);
+    data.push(["掃除箇所", "マニュアルリンク", "担当者"]);
+    
+    for (let i = 1; i < table.rows.length; i++) {
+        let row = table.rows[i];
+        let place = row.cells[0].innerText.replace("マニュアル", "").trim();
+        let url = "";
+        const link = row.cells[0].querySelector('a');
+        if (link) {
+            url = link.href;
+        }
+        urls.push(url);
+        let linkText = url ? "マニュアル" : "";
+        let name = row.cells[1].innerText.trim();
+        data.push([place, linkText, name]);
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+
+    ws['!cols'] = [
+        { wch: 25 },
+        { wch: 20 },
+        { wch: 40 }
+    ];
+
+    ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }
+    ];
+
+    const borderStyle = {
+        top: { style: "thin" }, bottom: { style: "thin" },
+        left: { style: "thin" }, right: { style: "thin" }
+    };
+
+    for (let cellAddress in ws) {
+        if (cellAddress[0] === '!') continue;
+        
+        let cell = ws[cellAddress];
+        if (!cell) continue;
+
+        const range = XLSX.utils.decode_cell(cellAddress);
+        const col = range.c;
+        const row = range.r;
+
+        cell.s = {
+            border: borderStyle,
+            alignment: { vertical: "center", wrapText: true }
+        };
+
+        if (row === 0 && col === 0) {
+            cell.s.font = { sz: 14, bold: true };
+            cell.s.alignment = { horizontal: "center", vertical: "center" };
+        }
+
+        if (row === 1) {
+            cell.s.font = { bold: true };
+            cell.s.alignment = { horizontal: "center", vertical: "center" };
+        }
+
+        if (col === 1 && row >= 2) {
+            const urlIndex = row - 2;
+            const targetUrl = urls[urlIndex];
+
+            if (targetUrl) {
+                cell.l = { Target: targetUrl };
+                cell.s.font = { color: { rgb: "0000FF" }, underline: true };
+                cell.s.alignment = { horizontal: "center", vertical: "center" };
+            }
+        }
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "掃除当番");
+    const date = new Date();
+    const filename = `掃除当番_${date.getFullYear()}${date.getMonth()+1}${date.getDate()}.xlsx`;
+    XLSX.writeFile(wb, filename);
+}
+
+function exportToPDF() {
+    const originalTable = document.getElementById('resultTable');
+    const container = document.createElement('div');
+    container.style.padding = "20px";
+    container.style.fontFamily = "sans-serif";
+
+    const title = document.createElement('h1');
+    title.innerText = "掃除当番決定表";
+    title.style.fontSize = "30px";
+    title.style.textAlign = "center";
+    title.style.marginBottom = "20px";
+    title.style.color = "#333";
+    container.appendChild(title);
+
+    const tableClone = originalTable.cloneNode(true);
+    tableClone.style.width = "100%";
+    tableClone.style.borderCollapse = "collapse";
+    
+    const cells = tableClone.querySelectorAll('th, td');
+    cells.forEach(cell => {
+        cell.style.border = "1px solid #333";
+        cell.style.padding = "8px";
+        cell.style.textAlign = "left";
+    });
+    
+    const headers = tableClone.querySelectorAll('th');
+    headers.forEach(th => {
+        th.style.backgroundColor = "#34495e";
+        th.style.color = "#fff";
+        th.style.textAlign = "center";
+    });
+
+    container.appendChild(tableClone);
+
+    const opt = {
+        margin:       10,
+        filename:     '掃除当番表.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().from(container).set(opt).save();
+}
+
+function openResultInNewTab() {
+    const tableHTML = document.getElementById('resultTable').outerHTML;
+    const newWin = window.open('', '_blank');
+    newWin.document.write(`
+        <html>
+        <head>
+            <title>掃除当番決定表</title>
+            <style>
+                body { font-family: sans-serif; padding: 20px; }
+                h1 { text-align: center; color: #333; font-size: 24px; margin-bottom: 20px; }
+                table { width: auto; min-width: 600px; max-width: 800px; margin: 0 auto; border-collapse: collapse; }
+                th, td { border: 1px solid #000; padding: 10px; text-align: left; }
+                th { background-color: #f2f2f2; text-align: center; font-weight: bold; }
+                a { text-decoration: none; color: #3498db; }
+            </style>
+        </head>
+        <body>
+            <h1>掃除当番決定表</h1>
+            ${tableHTML}
+            <div style="text-align:center; margin-top:20px;">
+                <button onclick="window.print()" style="padding:10px 20px; font-size:16px;">印刷する</button>
+            </div>
+        </body>
+        </html>
+    `);
+    newWin.document.close();
 }
